@@ -5,7 +5,7 @@
 ## 功能特点
 
 - 无GUI，作为后台进程运行
-- 全局快捷键触发（如 `Ctrl+Shift+S`）和/或定时任务触发（如每30分钟一次），两者可同时启用
+- 全局快捷键触发（默认是Tab键上方的波浪键 `` ` ``，单独按一下即可，也可自行改成组合键）和/或定时任务触发（如每30分钟一次），两者可同时启用
 - 全屏截图，支持仅截主屏、指定屏幕或所有屏幕
 - OCR识别直接调用操作系统内置引擎（Windows: `Windows.Media.Ocr`；macOS: `Vision Framework`），**编译完成即可直接运行，不需要用户额外安装Tesseract等任何软件**
 - 每次识别结果均保存为 PNG 截图 + 同名 TXT 文本，并写入日志文件
@@ -56,8 +56,8 @@ ocr:
 trigger:
   hotkey:
     enabled: true
-    modifiers: ["ctrl", "shift"]
-    key: "S"
+    modifiers: []
+    key: "`"
   timer:
     enabled: false
     interval: "30m"
@@ -66,6 +66,8 @@ log_file: "./logs/app.log"
 ```
 
 字段说明见 `config.example.yaml` 中的注释。`trigger.hotkey` 与 `trigger.timer` 至少需启用一个。
+
+`trigger.hotkey.key` 支持：单个字母/数字（如 `"S"`、`"9"`）、`` "`" ``（Tab键上方的波浪键）、`F1`~`F20`、`SPACE`/`TAB`/`ESC`/`ENTER`/`DELETE`/方向键等。`modifiers` 可以是 `["ctrl", "shift", "alt", "win"（macOS上等价于Cmd）]` 的任意组合，留空 `[]` 表示不需要按修饰键，单独按`key`即可触发。
 
 ## 构建与运行
 

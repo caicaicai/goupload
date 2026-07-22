@@ -50,8 +50,8 @@ func Default() *Config {
 		Trigger: TriggerConfig{
 			Hotkey: HotkeyConfig{
 				Enabled:   true,
-				Modifiers: []string{"ctrl", "shift"},
-				Key:       "S",
+				Modifiers: []string{},
+				Key:       "`",
 			},
 			Timer: TimerConfig{
 				Enabled:  false,

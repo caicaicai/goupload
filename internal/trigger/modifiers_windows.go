@@ -14,3 +14,10 @@ func altModifier() hotkey.Modifier {
 func superModifier() hotkey.Modifier {
 	return hotkey.ModWin
 }
+
+// backtickKey 返回Tab键上方"`~"键（数字1左侧）对应的平台按键码。
+// golang.design/x/hotkey未提供该键的命名常量，这里直接使用其虚拟键码：
+// Windows下为VK_OEM_3（美式键盘布局对应"`~"键）。
+func backtickKey() hotkey.Key {
+	return hotkey.Key(0xC0)
+}

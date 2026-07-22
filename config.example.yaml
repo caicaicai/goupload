@@ -16,11 +16,13 @@ ocr:
   languages: ["zh-Hans", "en"]
 
 trigger:
-  # 全局快捷键触发：按下组合键后立即执行一次截图+识别
+  # 全局快捷键触发：按下按键后立即执行一次截图+识别
   hotkey:
     enabled: true
-    modifiers: ["ctrl", "shift"]
-    key: "S"
+    # modifiers为空表示不需要按住任何修饰键，单独按key这一个键即可触发
+    modifiers: []
+    # "`"为Tab键上方、数字1左侧的波浪键（`~），也可以改成 "F9"、["ctrl","shift"]+"S" 等组合
+    key: "`"
 
   # 定时触发：每隔固定时间自动执行一次截图+识别
   timer:

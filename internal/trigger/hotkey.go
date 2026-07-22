@@ -92,6 +92,11 @@ func parseKey(name string) (hotkey.Key, error) {
 		}
 	}
 
+	switch key {
+	case "`", "~", "GRAVE", "BACKTICK", "TILDE":
+		return backtickKey(), nil
+	}
+
 	if k, ok := namedKeys[key]; ok {
 		return k, nil
 	}
