@@ -110,7 +110,7 @@ go build -o screenocr ./cmd/screenocr
 ## 常见问题
 
 - **macOS下热键无响应，或报错 `hotkey: failed to register, grant the application Accessibility (Input Monitoring) permission`**：说明还没有在"辅助功能"中为本程序授权，具体步骤见上方"运行环境要求"章节。
-- **macOS下截图为黑屏**：检查是否已在"屏幕录制"中为本程序授权，步骤同上（辅助功能换成屏幕录制页面）。
+- **macOS下截图为黑屏，或截到的是一片空白桌面（没有任何窗口/图标内容）**：没有报错，但这正是没有真正获得"屏幕录制"权限时的典型表现——`CGDisplayCreateImage`在无权限时不会报错，而是静默返回一张空的桌面背景图。请确认"屏幕录制"里加的是**终端应用本身**（而不只是`screenocr`可执行文件，原因见上方"运行环境要求"章节的说明），加完后同样需要**完全退出终端（`Cmd+Q`）再重新打开**才会生效。
 - **中文识别效果不理想/识别为空**：确认系统已安装对应语言的OCR语言包（Windows可在系统设置的语言选项中添加；macOS一般自带多语言支持），并确认 `ocr.languages` 中包含了正确的语言代码（如 `zh-Hans`）。
 - **需要识别其它语言**：在 `ocr.languages` 中添加对应的语言代码（如日语 `ja`、韩语 `ko`），具体支持的语言集合以操作系统OCR组件为准。
 - **Windows下修改`ocr.languages`似乎不生效**：当前依赖的系统OCR封装库在Windows上使用的是系统当前用户已安装的OCR语言包（而非`ocr.languages`配置），因此实际识别语言取决于系统"设置→时间和语言→语言"中已安装的语言包；`ocr.languages`在macOS（Vision Framework）上会正确生效。
