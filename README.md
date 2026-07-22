@@ -68,7 +68,8 @@ log_file: "./logs/app.log"
 
 ```bash
 # 在目标平台（Windows 或 macOS）上执行
-go build -o screenocr ./cmd/screenocr
+# macOS上需显式设置MACOSX_DEPLOYMENT_TARGET，原因见下方"常见问题"
+MACOSX_DEPLOYMENT_TARGET=10.15 go build -o screenocr ./cmd/screenocr
 
 # 运行（默认读取当前目录下的config.yaml）
 ./screenocr
@@ -109,3 +110,5 @@ go build -o screenocr ./cmd/screenocr
 - **中文识别效果不理想/识别为空**：确认系统已安装对应语言的OCR语言包（Windows可在系统设置的语言选项中添加；macOS一般自带多语言支持），并确认 `ocr.languages` 中包含了正确的语言代码（如 `zh-Hans`）。
 - **需要识别其它语言**：在 `ocr.languages` 中添加对应的语言代码（如日语 `ja`、韩语 `ko`），具体支持的语言集合以操作系统OCR组件为准。
 - **Windows下修改`ocr.languages`似乎不生效**：当前依赖的系统OCR封装库在Windows上使用的是系统当前用户已安装的OCR语言包（而非`ocr.languages`配置），因此实际识别语言取决于系统"设置→时间和语言→语言"中已安装的语言包；`ocr.languages`在macOS（Vision Framework）上会正确生效。
+- **macOS下启动直接报错退出，提示 `Library not loaded: .../ScreenCaptureKit` 或 `dyld ... Reason: tried: ... (no such file)`**：说明构建时使用的编译环境SDK版本较新（`kbinani/screenshot`会在编译期判断SDK版本是否高于14.4，高于则链接进`ScreenCaptureKit.framework`这个硬依赖），而运行的这台Mac系统版本低于macOS 12.3（Monterey），系统里没有该framework，导致程序一启动就被dyld中止。
+  - 解决方法：构建时显式设置环境变量 `MACOSX_DEPLOYMENT_TARGET=10.15`（或任意 ≤14.4 的版本号）后再`go build`，这样编译期会走不依赖`ScreenCaptureKit`的旧版`CGDisplayCreateImageForRect`截图路径，兼容到macOS 10.15。仓库自带的 [.github/workflows/build.yml](.github/workflows/build.yml) 已经这样配置，用CI构建出的产物不会有此问题；只有在Mac本机手动`go build`时才需要自己带上这个环境变量。
