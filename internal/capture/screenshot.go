@@ -8,8 +8,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-
-	"github.com/kbinani/screenshot"
 )
 
 // Shot 表示一次截图的结果：截取自哪个显示器索引，以及图像数据。
@@ -20,8 +18,14 @@ type Shot struct {
 
 // Capture 按照 monitor 配置（"primary" | "all" | 数字索引字符串）截取屏幕，
 // 返回一张或多张截图。
+//
+// 底层截图能力由平台特定文件提供：
+//   - platform_windows.go：基于 github.com/kbinani/screenshot（纯syscall，无需CGO）
+//   - platform_darwin.go：直接基于CoreGraphics的CGDisplayCreateImage实现（自行实现，不依赖
+//     第三方库，避开了部分库因编译期SDK版本判断而硬链接ScreenCaptureKit.framework、
+//     在旧SDK/旧系统上编译或运行失败的问题）
 func Capture(monitor string) ([]Shot, error) {
-	n := screenshot.NumActiveDisplays()
+	n := platformNumDisplays()
 	if n <= 0 {
 		return nil, fmt.Errorf("未检测到可用显示器")
 	}
@@ -33,8 +37,7 @@ func Capture(monitor string) ([]Shot, error) {
 
 	shots := make([]Shot, 0, len(indexes))
 	for _, idx := range indexes {
-		bounds := screenshot.GetDisplayBounds(idx)
-		img, err := screenshot.CaptureRect(bounds)
+		img, err := platformCaptureDisplay(idx)
 		if err != nil {
 			return nil, fmt.Errorf("截取显示器%d失败: %w", idx, err)
 		}
