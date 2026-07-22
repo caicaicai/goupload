@@ -1,0 +1,79 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    name: build (${{ matrix.artifact }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Windows下screenshot/hotkey/系统OCR均为纯Go+syscall实现，无需CGO
+          - os: windows-latest
+            binary: screenocr.exe
+            artifact: screenocr-windows-amd64
+          # macOS下依赖CGO调用Cocoa/CoreGraphics/Vision Framework，必须在macOS runner上原生构建
+          # macos-14/macos-latest为Apple Silicon(arm64)运行器
+          - os: macos-14
+            binary: screenocr
+            artifact: screenocr-macos-arm64
+          # macos-15-intel为x86_64(Intel)运行器，用于兼容仍在使用Intel芯片Mac的用户
+          # （GitHub已宣布Intel架构runner将在macOS 15镜像退役后停止支持，届时可移除此项）
+          - os: macos-15-intel
+            binary: screenocr
+            artifact: screenocr-macos-amd64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Build
+        run: go build -o ${{ matrix.binary }} ./cmd/screenocr
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.binary }}
+
+  release:
+    name: Attach binaries to release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Package artifacts
+        run: |
+          cd dist
+          for dir in */; do
+            name="${dir%/}"
+            (cd "$name" && zip -r "../${name}.zip" .)
+          done
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip
